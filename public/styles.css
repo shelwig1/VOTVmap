@@ -1,0 +1,91 @@
+body {
+    background-color: black;
+}
+
+/* .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: fit-content;
+    margin: 0 auto;
+} */
+
+.container {
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    align-items: center; /* Center children horizontally */
+    width: fit-content; /* Adjust container width based on content */
+    margin: 0 auto; /* Center the container horizontally if needed */
+}
+
+.button-container {
+    display: flex;
+    gap: 90px;
+    margin-top: 10px;
+    justify-content: center;
+}
+
+.location-button {
+    width: 40px;
+    height: 40px;
+    background-color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    outline: none;
+    color: white;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+
+    
+}
+
+.location-button.active {
+    outline: 2px solid;
+    outline-color: yellow;
+}
+ 
+.action-button {
+    width: 50%; /* Button width is half of the image's width */
+    max-width: 200px; /* Optional: Max width for larger images */
+    height: 40px; /* Height of the button */
+    background-color: #3498db; /* Button background color */
+    color: white; /* Button text color */
+    border: none; /* Remove default border */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    display: flex; /* Center text inside the button */
+    align-items: center;
+    justify-content: center;
+}
+
+.map-holder {
+
+    display: block;
+    max-width: 100%;
+    height: auto;
+
+/* 
+    display: flex;
+    justify-content: center;
+    align-items: center; */
+
+    position: absolute;
+
+    
+    top: 50%;
+    transform: translateY(-50%);
+     
+}
+
+/* #map {
+    width: 100%;
+    height: auto;
+    display: absolute;
+}
+
+ */
