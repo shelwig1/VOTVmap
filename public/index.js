@@ -45,10 +45,7 @@ window.onload = function() {
 
             button.classList.toggle('active')
         })
-
-
         mapHolder.appendChild(button)
-
     })
 
     const calculateButton = document.getElementById('calculate-route')
@@ -57,7 +54,17 @@ window.onload = function() {
         const selectedLocations = document.getElementsByClassName('active')
         const startPoint = document.getElementsByClassName('start-point')
 
-        const graph = buildGraph(startPoint, selectedLocations)
+        const {nodes, edges} = buildGraph(startPoint, selectedLocations)
+        const {distances, locNames} = processDistances(edges)
+        // Push these fellas into the algorithm at the end
+        console.log("Names: ", locNames)
+        //console.log(tspDynamicProgramming(distances))
+        const path = tspDynamicProgramming(distances)
+        // Convert the indexes back into human readable goodies here
+        const newPath = path.map(index => locNames[index])
+        console.log(newPath)
+        drawLines(newPath)
+        // Need to create a bunch of lines for this connecting the nodes in the path
     // add start point doodad
     // start point class
     // special outline
@@ -94,6 +101,7 @@ function calculateDistance(x1, y1, x2, y2) {
 function buildGraph(startPoint, selectedLocations) {
     const nodes = []
     const edges = []
+    const distances = []
 
     for (const loc of selectedLocations) {
         const locCoord = {
@@ -109,7 +117,7 @@ function buildGraph(startPoint, selectedLocations) {
         nodes.push(nodeData)
 
         for (const loc2 of selectedLocations) {
-            if (loc != loc2) {
+            //if (loc != loc2) {
                 const loc2Coord = {
                     x: parseInt(loc2.style.left, 10),
                     y: parseInt(loc2.style.top, 10)
@@ -122,13 +130,107 @@ function buildGraph(startPoint, selectedLocations) {
                 }
 
                 edges.push(edgeData)
-            }
+           // }
         }
 
     }
+
+    nodes.reverse()
+    edges.reverse()
 
     console.log(nodes)
     console.log(edges)
 
     return {nodes, edges}
+}
+
+function processDistances(edges) {
+    const distances = []
+    const locNames = []
+    let currFrom
+    let dist = []
+
+    for (const edge of edges) {
+        if (!currFrom) {
+            locNames.push(edge.from)
+        }
+        if (currFrom && currFrom != edge.from) {
+            distances.push(dist)
+            dist = []
+            currFrom = edge.from
+            locNames.push(edge.from)
+        } else {
+            currFrom = edge.from
+            
+        }
+        dist.push(edge.distance)
+    }
+    distances.push(dist)
+
+    return {distances, locNames}
+}
+
+
+function tspDynamicProgramming(dist) {
+    const n = dist.length;
+    const VISITED_ALL = (1 << n) - 1; // All cities visited bitmask (e.g., 1111 for 4 cities)
+    
+    // Create a memoization table to store the minimum distances
+    const dp = Array.from({ length: n }, () => Array(1 << n).fill(Infinity));
+    const parent = Array.from({ length: n }, () => Array(1 << n).fill(-1));
+
+    // Base case: Starting from any city, the distance to visit only that city is 0
+    for (let i = 0; i < n; i++) {
+        dp[i][1 << i] = 0;
+    }
+
+    // Iterate over all subsets of cities
+    for (let mask = 1; mask <= VISITED_ALL; mask++) {
+        for (let u = 0; u < n; u++) {
+            if (mask & (1 << u)) { // If u is in the set represented by mask
+                for (let v = 0; v < n; v++) {
+                    if (!(mask & (1 << v))) { // If v is not in the set
+                        let newMask = mask | (1 << v);
+                        let newDistance = dp[u][mask] + dist[u][v];
+                        if (newDistance < dp[v][newMask]) {
+                            dp[v][newMask] = newDistance;
+                            parent[v][newMask] = u;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Find the minimum cost to return to the starting city
+    let minTourCost = Infinity;
+    let lastCity = -1;
+
+    for (let i = 0; i < n; i++) {
+        let tourCost = dp[i][VISITED_ALL] + dist[i][0];
+        if (tourCost < minTourCost) {
+            minTourCost = tourCost;
+            lastCity = i;
+        }
+    }
+
+    // Reconstruct the path
+    let path = [];
+    let mask = VISITED_ALL;
+
+    while (lastCity != -1) {
+        path.push(lastCity);
+        let temp = parent[lastCity][mask];
+        mask = mask ^ (1 << lastCity); // Remove the lastCity from the mask
+        lastCity = temp;
+    }
+
+    path.push(0); // Add the starting city at the end to complete the tour
+    path.reverse(); // Reverse the path to get the correct order
+
+/*     return {
+        minTourCost,
+        path
+    }; */
+    return path
 }
